@@ -1,0 +1,35 @@
+.crsp {
+  cursor: pointer;
+}
+body {
+  background-color: #212529;
+}
+.modalka {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(7, 7, 7, 0.822);
+  height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.c-loader {
+  margin-top: 100px;
+  width: 50px;
+  height: 50px;
+  border: 6px solid #e5e5e5;
+  border-top-color: #51d4db;
+  display: block;
+  animation: is-rotating 1s infinite;
+  border-radius: 50%;
+}
+
+@keyframes is-rotating {
+  to {
+    transform: rotate(1turn);
+  }
+}
