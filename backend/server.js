@@ -26,7 +26,7 @@ if (process.env.NODE_ENV === "production") {
 // ASOSIY PROYEKT
 app.listen(PORT, () => {
   connectDB();
-  console.log(`server started http://localhost:${PORT}`);
+  console.log("server started http://localhost:" + PORT);
 });
 
 // AkL9UvZWISwmjQsq;
