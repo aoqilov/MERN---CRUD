@@ -33,3 +33,9 @@ body {
     transform: rotate(1turn);
   }
 }
+.btn:disabled {
+  background: gray !important;
+}
+.is-invalid {
+  border: 2px solid red;
+}

@@ -1,60 +1,76 @@
 import axios from "axios";
 import { create } from "zustand";
 
-export const useProductStore = create((set) => ({
+export const useProductStore = create((set, get) => ({
   products: [],
+  isProductsLoading: false, // new
   setProducts: (products) => set({ products }),
+  setProductsIsLoading: (isLoading) => set({ isProductsLoading: isLoading }), // new
+
   createProduct: async (newProduct) => {
-    if (
-      !newProduct.name.trim() ||
-      !newProduct.price.trim() ||
-      !newProduct.image.trim()
-    ) {
-      return { success: false, message: "PLEASE FILL ALL INPUT" };
-    }
+    const { setProductsIsLoading } = get();
     try {
+      setProductsIsLoading(true);
+      console.log(get().isProductsLoading, "isProductsLoading");
+
       const res = await axios.post("/api/products", newProduct);
       const data = await res.data;
       set((state) => ({ products: [...state.products, data] }));
       return { success: true, message: "product created success" };
     } catch (error) {
       return { success: false, message: "Failed to create product" };
+    } finally {
+      setProductsIsLoading(false);
+      console.log(get().isProductsLoading, "isProductsLoading");
     }
   },
-  getFetchProducts: async () => {
-    const res = await axios.get("/api/products");
-    const data = await res.data;
-    set({ products: data });
-    if (!data.success) {
-      return { success: false, message: "xatolik bor" };
-    } else {
-      return { success: true, message: "deleted " };
-    }
-  },
-  deleteProduct: async (id) => {
-    const res = await axios.delete(`/api/products/${id}`);
-    const data = await res.data;
-    set({ products: data });
-    if (!data.success) {
-      return { success: false, message: "xatolik bor" };
-    } else {
-      return { success: true, message: "deleted " };
-    }
-  },
-  zusUpdateProduct: async (pid, updatedProduct) => {
-    // API orqali mahsulotni yangilash
-    const res = await axios.put(`/api/products/${pid}`, updatedProduct);
-    const data = await res.data;
 
-    if (!data.success) return { success: false, message: data.message };
-    else if (data.success) {
-      return { success: true, message: "edip page" };
+  getFetchProducts: async () => {
+    const { setProductsIsLoading } = get();
+    try {
+      setProductsIsLoading(true);
+      // console.log(get().isProductsLoading, "isProductsLoading");
+      const { data } = await axios.get("/api/products");
+      if (!data.success) {
+        return { success: false, message: "xatolik bor" };
+      } else {
+        set({ products: data });
+        return { success: true, message: "malumot kelmadi " };
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setProductsIsLoading(false);
+      // console.log(get().isProductsLoading, "isProductsLoading");
     }
-    // UI ni darhol yangilash
-    set((state) => ({
-      products: state.products.map((product) =>
-        product._id === pid ? data.data : product
-      ),
-    }));
+  },
+
+  deleteProduct: async (id) => {
+    const { data } = await axios.delete(`/api/products/${id}`);
+    if (!data.success) {
+      return { success: false, message: "xatolik bor" };
+    } else {
+      return { success: true, message: "deleted " };
+    }
+  },
+
+  zusUpdateProduct: async (pid, updatedProduct) => {
+    const { setProductsIsLoading } = get();
+    try {
+      setProductsIsLoading(true);
+      console.log(get().isProductsLoading, "try");
+      const res = await axios.put(`/api/products/${pid}`, updatedProduct);
+      const data = await res.data;
+      //
+      if (!data.success) return { success: false, message: data.message };
+      else if (data.success) {
+        return { success: true, message: "edip page" };
+      }
+    } catch (error) {
+      console.log(error.message);
+    } finally {
+      setProductsIsLoading(false);
+      console.log(get().isProductsLoading, "final");
+    }
   },
 }));

@@ -5,6 +5,8 @@ import { useNavigate } from "react-router-dom";
 
 const Create = () => {
   const navigate = useNavigate();
+  const [errors, setErrors] = useState({});
+
   const [productData, setProductData] = useState({
     name: "",
     price: "",
@@ -17,11 +19,35 @@ const Create = () => {
     setProductData({ ...productData, [name]: value });
   };
   // zustand kevotgan funksiya create
-  const { createProduct } = useProductStore();
+  const { createProduct, isProductsLoading } = useProductStore();
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const newErrors = {}; // Track errors
+    const inputs = Object.entries(productData);
+
+    // Validate each input
+    for (const [key, value] of inputs) {
+      if (!value.trim()) {
+        newErrors[key] = true; // Mark field as invalid
+        toast.warning(`PLEASE FILL ALL INPUT (${key.toUpperCase()} IS EMPTY)`);
+      }
+      // Clean spaces for valid fields
+      productData[key] = value.trim();
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors); // Set errors if validation fails
+      return;
+    }
+
+    setErrors({}); // Clear errors if validation passes
+
+    // Call API to create product
     const { success, message } = await createProduct(productData);
-    toast.success("created !"); // Muvaffaqiyatli xabar
+    toast.success("Created!");
+
+    // Reset form
     setProductData({
       name: "",
       price: "",
@@ -52,12 +78,12 @@ const Create = () => {
             </label>
             <input
               type="text"
-              className="form-control"
+              className={`form-control ${errors.name ? "is-invalid" : ""}`}
               id="productName"
               placeholder="Enter product name"
               name="name"
+              value={productData.name}
               onChange={handleChange}
-              required
             />
           </div>
           <div className="mb-3">
@@ -66,38 +92,42 @@ const Create = () => {
             </label>
             <input
               type="number"
-              className="form-control"
+              className={`form-control ${errors.price ? "is-invalid" : ""}`}
               id="productPrice"
               name="price"
               placeholder="Enter product price"
+              value={productData.price}
               onChange={handleChange}
-              required
             />
           </div>
           <div className="mb-3">
             <label htmlFor="productDescription" className="form-label">
-              image Url
+              Image URL
             </label>
             <input
               type="text"
-              className="form-control"
+              className={`form-control ${errors.image ? "is-invalid" : ""}`}
               id="productDescription"
               name="image"
               placeholder="Enter product description"
+              value={productData.image}
               onChange={handleChange}
-              required
             />
           </div>
           <div className="d-flex justify-content-between">
-            <button type="submit" className="btn btn-primary">
-              Add Product
-            </button>
             <button
-              onClick={() => navigate("/")}
               type="button"
               className="btn btn-danger"
+              onClick={() => navigate("/")}
             >
               Cancel
+            </button>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={isProductsLoading}
+            >
+              Add Product
             </button>
           </div>
         </form>

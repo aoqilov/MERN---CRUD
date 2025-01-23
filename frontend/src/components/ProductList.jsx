@@ -3,25 +3,30 @@ import { useProductStore } from "../store/product";
 import { toast } from "sonner";
 import EditModaal from "./EditModaal";
 import Loader from "./Loader";
+import { useNavigate } from "react-router-dom";
 
 const ProductList = () => {
-  const { getFetchProducts, deleteProduct, products } = useProductStore();
+  const { getFetchProducts, deleteProduct, products, isProductsLoading } =
+    useProductStore();
   const [upData, setUpData] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
+
   useEffect(() => {
     getFetchProducts();
   }, [getFetchProducts]);
 
-  if (!products.data) {
+  if (isProductsLoading) {
     return <Loader />;
   }
 
   const handleDelete = async (id) => {
     const { success, message } = await deleteProduct(id);
+    await getFetchProducts();
     if (success) {
       toast.success(message);
     } else {
-      toast.warning(message);
+      toast.error(message);
     }
   };
 
@@ -34,21 +39,26 @@ const ProductList = () => {
     <div className="container mt-5">
       <h2 className="text-center text-info mb-4">Current Products 🚀</h2>
       <div className="d-flex flex-wrap justify-content-center gap-5">
-        {products?.data.length ? (
+        {products?.data?.length ? (
           products?.data.map((product) => (
             <div key={product._id} className=" ">
               <div
                 className="card text-white bg-dark mb-3 border border-info"
-                style={{ width: "18rem", height: "420px" }}
+                style={{ width: "18rem" }}
               >
                 <img
                   src={product.image}
-                  style={{ height: "330px" }}
+                  style={{ minHeight: "330px" }}
                   className="card-img-top"
                   alt={product.name}
                 />
-                <div className="card-body">
-                  <h5 className="card-title">{product.name}</h5>
+                <div
+                  className="card-body "
+                  style={{
+                    minHeight: "150px",
+                  }}
+                >
+                  <h5 className="card-title">{product.name.slice(0, 22)}</h5>
                   <p className="card-text">${product.price}</p>
                   <div className="d-flex justify-content-between">
                     <button

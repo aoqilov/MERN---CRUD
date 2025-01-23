@@ -1,10 +1,14 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useProductStore } from "../store/product";
 import { toast } from "sonner";
+import Loader from "./Loader";
 
 const EditModaal = ({ update, modal, setUpData, setIsOpen }) => {
   const nameInputRef = useRef(null);
-  const { zusUpdateProduct } = useProductStore();
+  const [errors, setErrors] = useState({});
+
+  const { zusUpdateProduct, getFetchProducts, isProductsLoading } =
+    useProductStore();
   useEffect(() => {
     if (modal && nameInputRef.current) {
       nameInputRef.current.focus();
@@ -18,13 +22,40 @@ const EditModaal = ({ update, modal, setUpData, setIsOpen }) => {
 
   const handleEdit = async (e) => {
     e.preventDefault();
+    //
+    const newErrors = {};
+    const inputs = Object.entries(update);
+    for (const [key, value] of inputs) {
+      if (typeof value === "string" && !value.trim()) {
+        newErrors[key] = true;
+        toast.warning(`PLEASE FILL ALL INPUT (${key.toUpperCase()} IS EMPTY)`);
+      } else if (!value) {
+        newErrors[key] = true;
+        toast.warning(`PLEASE FILL ALL INPUT (${key.toUpperCase()} IS EMPTY)`);
+      }
+      if (typeof value === "string") {
+        update[key] = value.trim();
+      }
+    }
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+    setErrors({});
+    //
     const { success, message } = await zusUpdateProduct(update._id, update);
     if (success) {
-      setIsOpen(false);
       toast.success(message);
+      if (isProductsLoading) {
+        return <Loader />;
+      }
+      await getFetchProducts();
+      setIsOpen(false);
     } else {
-      toast.warning(message);
+      toast.error(message || "Failed to update the product.");
     }
+
+    // Reset form or close modal if necessary
   };
 
   return (
@@ -50,7 +81,7 @@ const EditModaal = ({ update, modal, setUpData, setIsOpen }) => {
             <input
               ref={nameInputRef}
               type="text"
-              className="form-control"
+              className={`form-control ${errors.name ? "is-invalid" : ""}`}
               id="productName"
               name="name"
               placeholder="Enter product name"
@@ -64,7 +95,7 @@ const EditModaal = ({ update, modal, setUpData, setIsOpen }) => {
             </label>
             <input
               type="text"
-              className="form-control"
+              className={`form-control ${errors.price ? "is-invalid" : ""}`}
               id="productPrice"
               name="price"
               placeholder="Enter product price"
@@ -78,7 +109,7 @@ const EditModaal = ({ update, modal, setUpData, setIsOpen }) => {
             </label>
             <input
               type="text"
-              className="form-control"
+              className={`form-control ${errors.image ? "is-invalid" : ""}`}
               id="productDescription"
               name="image"
               placeholder="Enter product description"
@@ -87,9 +118,6 @@ const EditModaal = ({ update, modal, setUpData, setIsOpen }) => {
             />
           </div>
           <div className="d-flex justify-content-between">
-            <button type="submit" className="btn btn-primary">
-              Save Changes
-            </button>
             <button
               type="button"
               className="btn btn-danger"
@@ -99,6 +127,9 @@ const EditModaal = ({ update, modal, setUpData, setIsOpen }) => {
               }}
             >
               Cancel
+            </button>
+            <button type="submit" className="btn btn-primary">
+              Save Changes
             </button>
           </div>
         </form>
